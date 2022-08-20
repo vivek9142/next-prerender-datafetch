@@ -215,3 +215,81 @@ you really wanna ensure that this function runs for every incoming request
 so that it's never static pre-generated.because for example you have highly dynamic data
 which changes multiple times every second and therefore, you know, that any old page
 you would be serving would already be outdated. That could be another reason for using getServiceSideProps.
+
+*** Go-To - user-profile.js in pages/ folder ***
+
+
+## Dynamic Pages & "getServerSideProps"
+
+Now getServiceSideProps can sometimes be useful. I also want to mention how you would use it
+with a dynamic page. Here before, when we used getStaticProps, we also needed getStaticPaths
+to let Next.js know which instances of this page should be pre-generated.
+Now when using getServiceSideProps, that's not the case.
+
+*** Go-To - [uid].js in pages/user folder ***
+
+
+##  "getServerSideProps": Behind The Scenes
+ 
+I also always had a look at the production build to really show you what Next.js does getServerSideProps under the hood.we again run npm run build to build this for production,we see that we again pre-generated a couple of pages and importantly
+it's the same number of pages as we generated before.
+
+Now the user profile page was not pre-generated as is in the end signaled by this Lambda symbol here.The UID file also wasn't pre-generated.So this Lambda symbol here shows you that these pages are not pre-generated but instead will be pre-rendered on the server only.
+
+And that makes sense because in user profile we're using get Server Side Props
+and then UID we're using get Server Side Props. That's why, those pages are not pre-generated
+
+## Introducing Client-Side Data Fetching (And When To Use It)
+
+When building next JS applications, you will sometimes have data which just doesn't need to be pre-rendered,or which can't be pre-rendered.
+
+Examples would be data that changes with high frequency.
+for example, 
+
+* if you have stock data which you show on some page and that data changes multiple times every second,pre fetching and pre rendering might not make too much sense
+because you will always see outdated data when you visit this page. So in such a case, just showing a loading spinner when you visit the page, and then fetching the very latest data for you,and maybe updating that data in the background then might be the best user experience.
+
+* Another example would be highly user-specific data.For example, the last orders in an online shop.If you are in your account and your user profile and you view that data,
+that could be an example where we don't really need to pre-render a page.
+Definitely not for search engines because they won't see your private profile,
+and also not necessarily for the user experiencebecause if we go to this page, we might be more than fine with just waiting a second for the data to be loaded
+on the client and having a quicker navigation to the page might be more important
+than having the data available right from the start.
+
+*  you have partial data. So let's say you have like a dashboard page with a lots of different pieces of data ,lots of different kinds of data, in such a case, loading all these different pieces, which make up the overall dashboard might just slow down the request
+if you do that on the server, and pre rendering it statically during build time might also not make sense because it's personal data or because it's changing a lot.
+
+And in such cases, it might make the most sense to use the traditional approach of writing some code in your react components may be with user fact and fetch, fetch data from some API from insidethe client side react application.
+
+
+##  Implementing Client-Side Data Fetching
+
+*** Go-To - last-sales.js in pages/ folder ***
+
+## Using the "useSWR" NextJS Hook
+
+Now, you can absolutely write this client side data fetching code on your own,
+as we did it here, because this, of course, gives you full control over the entire component state, and how exactly data is being fetched.
+
+But this is also such a common pattern that you could consider creating your own custom hook
+to outsource this logic into it, or to use a third-party hook created by someone else.
+And you can look into the SWR hook.
+
+If you Google for use SWR you will find swr.vercel.app.This is a React hook developed by the Next.js team, but you can use it in non-Next.js projects as well.In the end, this is a hook which,under the hood, still will send a HTTP requestby default using the fetch API, which we also used,but it gives you a couple of nice built in features like caching and automatic revalidation retries on error.And you don't have to write all that code on your own.
+
+Instead, you can use this hook in a much simpler way.The strange name SWR, by the way, stands
+for stale-while-revalidate, which is the name of this hook because this hook has a built in features for caching data and revalidating data to give you the most up-to-date data
+without you noticing.
+
+In our project, we just need to install it as a package.
+With npm install swr we install this SWR hook package into our project.
+
+*** Go-To - swr-sales.js in pages/ folder ***
+
+
+##  Combining Pre-Fetching With Client-Side Fetching
+
+I wanna combine client-side data fetching with server-side pre-rendering.but because it can be a pattern which you do need in other kinds of applications, where you wanna pre-render a basic snapshot and then still fetch the latest data from the client
+and therefore that is a pattern you should also know.
+
+*** Go-To - prefetch-sales.js in pages/ folder ***
