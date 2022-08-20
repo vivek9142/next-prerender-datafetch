@@ -6,7 +6,7 @@ export default function UserProfilePage(props){
 export async function getServerSideProps(context){
 
     const {params, req,res} = context ; 
-    console.log(params, req,res);
+    // console.log(params, req,res);
     /*
     we also need to return an object here, and the object which be returned
     actually needs to have the same format as it does in getStaticProps.
