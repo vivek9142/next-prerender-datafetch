@@ -60,7 +60,14 @@ export async function getStaticPaths(){
         paths:[
             {params: {projid : 'p1'} },
         ],
-        /*if true we tell NextJS that even pages which are not listed here. So even parameter 
+        
+        fallback: true
+    }
+}
+
+export default ProductDetailPage;
+
+/*if true we tell NextJS that even pages which are not listed here. So even parameter 
         values for the PID parameter, which are not listed here, can be valid. 
         Values that should be loaded when they are visited. But they're not pre-generated,
         instead they're generated just in time when a request reaches the server. 
@@ -85,8 +92,3 @@ export async function getStaticPaths(){
         the HTML to be generated, identical to SSR (hence why blocking), and then be cached f
         or future requests so it only happens once per path.
         */
-        fallback: true
-    }
-}
-
-export default ProductDetailPage;

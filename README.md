@@ -121,4 +121,97 @@ is a waste of time and resources.
 
 That's where fallback becomes important.Here we can set this to true,and then for example, we could decide to only pre-render some pages.
 
-*** Go-To - dynamic1.js and [projid].js in pages/components folder ***
+*** Go-To - index.js and [projid].js in pages/dynamic1 folder ***
+
+## Loading Paths Dynamically
+
+*** Go-To - index.js and [prid].js in pages/dynamic1/path folder ***
+
+## Fallback Pages & "Not Found" Pages
+
+So now that we understand this concept of having a fallback and of generating certain pages for certain IDs let's take another look at the not found case that we're trying to request a page which doesn't exist. And let's start by simply visiting a page with a product ID of P4.
+
+Now we get a 404 error page here. So a not found page because in our data we only have the IDs P1, P2 and P3.since these are the only IDs that exist in that dummy-backend.json file.
+And automatically if we then try to load this page for an ID which was not pre-generated,
+we do get this 404 error.
+
+What if we use fallback true though? What if we for example assume that the products
+stored in dummy-backend.json might not be all the products for which we are able to fetch data.So we only generate pages for the three product IDs but by setting fallback to true,
+we then also tell Next.js that even if an ID value is not found here we still might be able to render a page. That's what the idea behind fallback is.
+
+So We need to define the fallback component here for it to load the data in background and 
+update it in front after loading. Now we'll get another error here-
+Error : Failed to load static props.
+
+Next trying to load this product page for an ID of P4
+for which we just don't have any data because in getStaticProps we are also reaching out to dummy-backend.json and  Next.js tries to load the actual data for this page and it just fails there because we don't have such a product. So that's why we get this error eventually 
+
+*** Go-To - index.js and [prid].js in pages/dynamic1/path folder ***
+
+
+## Introducing "getServerSideProps" for Server-side Rendering (SSR)
+
+I referred to two forms of pre-rendering: 
+* static generation 
+* server-side rendering.
+
+
+Now what we had a look at thus far, that's static generation because we statically pre-generate pages. Even though it's not fully static because of incremental static generation, which I also explained, but generally pages are pre-generated.
+And that is really important.
+
+Inside of getStaticProps and also inside of getStaticPaths, we don't have access to the actual request which is incoming. Because these functions are not called for the actual request, at least not only. 
+
+With incremental static generation, they are also called for incoming requests
+at least sometimes if they need to be re-validated but they are generally called when your project is built.So inside of getStaticProps,you don't have access to the actual incoming request.Now, very often, you also don't need access.
+
+For example, here in the examples I showed you thus far,we don't need access to the actual request,which is reaching the server.But sometimes static generation is not enough
+and instead, you need real server-side rendering,which means that you do need to pre-render 
+a page for every incoming request.and/or you need access to the concrete request object
+that is reaching the server.Because, for example, you need to extract cookies.
+
+NextJS also supports this run real server-side code use case which means it gives you a function which you can add to your page component files, which is then really executed
+whenever a request for this page reaches the server.so that's then not pre-generated in advance during build time or every couple of seconds but it's really code that runs on the server only,so only after you deployed it,and which is then re-executed for every incoming request.
+
+And that code is added to a function called ***getServerSideProps***.
+Just like getStaticProps, it's a async function. It needs to be called exactly like this
+and it needs to be exported. and you can only add it to your page component files.
+But then if you do have such a function in a page component file,
+NextJS will execute that function and it will execute it whenever a request for this page is made. 
+
+And therefore, you should only use either getStaticProps or getServerSideProps because they kind of clash. They fulfill the same purpose. They get props for the component
+so that NextJS is then able to render that component but they run at different points 
+of time.
+
+## Using "getServerSideProps" for Server-side Rendering
+
+So let's say we have a dummy user profile js file here in the pages folder.So a user profile page for which I'll add a component here, the UserProfilePage component.
+And in here, we want to get some users specific data and show that on the screen.
+
+Now we could expect a user ID as part of the URL.So we could make this kind of dynamic
+and expect to use the ID instead.But then everyone who enters this ID in the browser
+is able to see some data for that given user ID.So that's not what I want here.
+Instead, we wanna identify the user making the request,let's say with help of a cookie which we set before.Now at the moment we don't have that here. to get that we need to use getServerSideProps(context).
+
+The important thing now really is that this only executes on the server after deployment
+and also on our development server here, but it's not statically pre-generated.
+And that has a couple of important implications.
+
+## "getServerSideProps" and its Context
+The implications can be found in this context object unlike context in getStaticProps
+we don't just have access to the params and a couple of other less important fields
+instead, we get access to the full request object as well. and also to the response which will be sent back so that we could even manipulate this and add extra headers if you wanted to. 
+
+To be precise we do get a couple of values a couple of keys in this context object
+and we do get access still to the params that does not change if we have this on a dynamic page which we don't have here but if this would be on a dynamic page we still would get access to params but in addition, as mentioned, we also get access to the request object and the response object.
+
+you can manipulate the response before it's sent back by adding extra headers, for example
+by adding a cookie, for example. In addition, you can also dive into the request object
+that reached the server and you can read incoming data from there.
+
+For example, headers that were attached through request and therefore cookie data that was attached to the request. Request and response the objects we're getting here
+are your official Node.js default incoming message and response objects.
+
+you really wanna ensure that this function runs for every incoming request
+so that it's never static pre-generated.because for example you have highly dynamic data
+which changes multiple times every second and therefore, you know, that any old page
+you would be serving would already be outdated. That could be another reason for using getServiceSideProps.
